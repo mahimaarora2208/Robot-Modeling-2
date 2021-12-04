@@ -10,6 +10,7 @@
 
     <!-- This command adds the controller variables you defined in the config file into ros's parameter list. Simply add the file name in the file tag -->
 	<rosparam file="$(find ck_robot)/config/config_controllers.yaml" command="load"/>
+    <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
 
   <node
     name="tf_footprint_base"
@@ -36,6 +37,8 @@
 	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
         <param name="use_gui" value="False"/>
     </node>
+
+  <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
 
   <!-- TF node that gives the static transformation between the world map and the base link of your robot. Change /base_link to the /root link name of your robot -->
     <node pkg="tf" type="static_transform_publisher" name="map_to_base" args="1 0 0 0 0 0 1 /map /base_link 10" />
