@@ -1,0 +1,34 @@
+Effort:
+- Subtasks
+
+
+CyberKnife Control:
+- Write simple publisher / subscriber
+- Retrieve joint positions from CyberKnife
+- Calculate Jacobian from joint positions
+- Calculate inverse kinematics
+- Move CyberKnife to point at tumor
+
+
+CyberKnife Scanning:
+- Complete "CyberKnife Control"
+- Find out motion path for our end effector
+- Similar to homework 5, move the CyberKnife to trace that path
+
+
+Random Tumor Generation:
+- Write simple publisher / subscriber
+- Determine workspace of the robot (or at least a maximum scanning distance)
+- Randomly generate a point for CyberKnife to point to
+- Publish these coords to a topic
+
+- Create a sphere in URDF
+- Place the sphere at the generated coordinates 
+  - without gravity
+
+
+Tumor Position Validation:
+- Attach a LiDAR to the tip of CyberKnife
+- Point it along the end effector's Z axis
+- Visualize the LiDAR data in RViz
+- Ensure that, once tracked, the LiDAR ball stays in one place
