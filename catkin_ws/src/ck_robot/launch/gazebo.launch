@@ -2,12 +2,12 @@
   <include
     file="$(find gazebo_ros)/launch/empty_world.launch" />
 
-  <param name= "robot_description" command="$(find xacro)/xacro --inorder /home/ubuntu/Robotic-Modeling-2/catkin_ws/src/ck_robot/urdf/ck_robot.urdf.xacro"/>
+  <param name= "robot_description" command="$(find xacro)/xacro --inorder $(find ck_robot)/urdf/ck_robot.urdf.xacro"/>
     <param name = "my_robot" value="ck_robot"/> 
-	<arg name ="init_pose" value="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0"/>
+	<arg name ="init_pose" value="-x -0.20 -y 0.55 -z -0.05 -R 0 -P 0 -Y 0"/>
 
     <!-- This command adds the controller variables you defined in the config file into ros's parameter list. Simply add the file name in the file tag -->
-	<rosparam file="/home/ubuntu/Robotic-Modeling-2/catkin_ws/src/ck_robot/config/config_controllers.yaml" command="load"/>
+	<rosparam file="$(find ck_robot)/config/config_controllers.yaml" command="load"/>
 
   <node
     name="tf_footprint_base"
