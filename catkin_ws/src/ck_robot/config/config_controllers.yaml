@@ -1,0 +1,70 @@
+# Robot name goes here
+ck_robot: 
+  # default controller
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  gazebo_ros_control:
+    pid_gains:
+      joint_1: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0
+      joint_2: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0
+      joint_3: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0 
+      joint_4: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0 
+      joint_5: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0 
+      joint_6: 
+        p: 1.0 
+        i: 0.0 
+        d: 0.0 
+
+  # Controller 1
+  trans_1:
+    type: velocity_controllers/JointVelocityController 
+    joint: joint_1
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+   
+   # Controller 2
+  trans_2:
+    type: velocity_controllers/JointVelocityController 
+    joint: joint_2
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+    
+  # Controller 3
+  trans_3:
+    type: velocity_controllers/JointVelocityController 
+    joint: joint_3
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+    
+  # Controller 4
+  trans_4:
+    type: velocity_controllers/JointVelocityController
+    joint: joint_4
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+    
+  # Controller 5
+  trans_5:
+    type: velocity_controllers/JointVelocityController
+    joint: joint_5
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+    
+  # Controller 6
+  trans_6:
+    type: velocity_controllers/JointVelocityController
+    joint: joint_6
+    pid : {p: 100.0 , i: 0.0 , d: 0.0} 
+ 
