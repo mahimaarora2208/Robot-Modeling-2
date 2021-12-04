@@ -433,4 +433,27 @@
       <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
     </actuator>
  </transmission>
+
+ <gazebo reference="base_link">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_1">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_2">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_3">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_4">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_5">
+  <gravity>0</gravity>
+ </gazebo>
+ <gazebo reference="link_6">
+  <gravity>0</gravity>
+ </gazebo>
+
 </robot>

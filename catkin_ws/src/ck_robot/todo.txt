@@ -27,7 +27,7 @@ Random Tumor Generation:
   - without gravity
 
 
-Tumor Position Validation:
+Tumor Position Validation: (stretch goal)
 - Attach a LiDAR to the tip of CyberKnife
 - Point it along the end effector's Z axis
 - Visualize the LiDAR data in RViz
