@@ -23,10 +23,10 @@ CyberKnife Scanning:
 
 
 Random Tumor Generation:
-- Write simple publisher / subscriber
++ Write simple publisher / subscriber
 - Determine workspace of the robot (or at least a maximum scanning distance)
-- Randomly generate a point for CyberKnife to point to
-- Publish these coords to a topic
++ Randomly generate a point for CyberKnife to point to
++ Publish these coords to a topic
 
 - Create a sphere in URDF
 - Place the sphere at the generated coordinates 
