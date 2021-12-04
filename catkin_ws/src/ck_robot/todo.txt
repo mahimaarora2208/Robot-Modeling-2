@@ -1,3 +1,9 @@
+Minor changes(not a priority) :
+- relative path to be used
+- appearance of manipulator in gazebo
+- shift the manipulator on origin
+
+
 Effort:
 - Subtasks
 
