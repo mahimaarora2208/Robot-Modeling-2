@@ -9,8 +9,8 @@ Effort:
 
 
 CyberKnife Control:
-- Write simple publisher / subscriber
-- Retrieve joint positions from CyberKnife
++ Write simple publisher / subscriber
++ Retrieve joint positions from CyberKnife
 - Calculate Jacobian from joint positions
 - Calculate inverse kinematics
 - Move CyberKnife to point at tumor
@@ -28,9 +28,9 @@ Random Tumor Generation:
 + Randomly generate a point for CyberKnife to point to
 + Publish these coords to a topic
 
-- Create a sphere in URDF
++ Create a sphere in URDF
 - Place the sphere at the generated coordinates 
-  - without gravity
+  + without gravity
 
 
 Tumor Position Validation: (stretch goal)
