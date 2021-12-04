@@ -1,6 +1,8 @@
 <launch>
   <include
-    file="$(find gazebo_ros)/launch/empty_world.launch" />
+    file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="true" />
+  </include>
 
   <param name= "robot_description" command="$(find xacro)/xacro --inorder $(find ck_robot)/urdf/ck_robot.urdf.xacro"/>
     <param name = "my_robot" value="ck_robot"/> 
@@ -18,7 +20,7 @@
     name="spawn_model"
     pkg="gazebo_ros"
     type="spawn_model"
-    args="$(arg init_pose) -param robot_description -urdf -model ck_robot"
+    args="$(arg init_pose) -param robot_description -urdf -model ck_robot -J joint_2 0.75 -unpause"
     output="screen" />
   <node
     name="fake_joint_calibration"
