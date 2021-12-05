@@ -56,11 +56,14 @@ def init_tumor_generator():
         move_tumor(x, y, z)
 
     # Publish our coordinates to our own topic
-    tumor_pub = rospy.Publisher('tumor_location', PoseStamped, queue_size=10)
+    tumor_pub = rospy.Publisher('/tumor_location', PoseStamped, queue_size=10)
     tumor_location = PoseStamped()
     tumor_location.pose.position.x = x
     tumor_location.pose.position.y = y
     tumor_location.pose.position.z = z
+ 
+    while tumor_pub.get_num_connections() == 0:
+        pass
 
     tumor_pub.publish(tumor_location)
     
