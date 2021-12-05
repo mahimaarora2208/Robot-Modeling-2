@@ -3,6 +3,7 @@
 import math
 import random
 import os
+import time
 
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -62,8 +63,10 @@ def init_tumor_generator():
     tumor_location.pose.position.y = y
     tumor_location.pose.position.z = z
  
+    start_time = time.time() 
     while tumor_pub.get_num_connections() == 0:
-        pass
+        if time.time() - start_time > 10:
+            break
 
     tumor_pub.publish(tumor_location)
     
