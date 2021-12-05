@@ -12,6 +12,8 @@ from std_msgs.msg import Float64
 
 print("Finished with imports.")
 
+MAX_JOINT_VELOCITY = 1.5
+
 joint_positions = [-1, -1, -1, -1, -1, -1]
 joint_velocities = [-1, -1, -1, -1, -1, -1]
 
@@ -71,12 +73,21 @@ def pursue_tumor_location():
     desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [0]])
     q_prime = inverse_j * desired_ee_movement
 
-    joint_1_pub.publish(q_prime[0, 0])
-    joint_2_pub.publish(q_prime[1, 0])
-    joint_3_pub.publish(q_prime[2, 0])
-    joint_4_pub.publish(q_prime[3, 0])
-    joint_5_pub.publish(q_prime[4, 0])
-    joint_6_pub.publish(q_prime[5, 0])
+    max_velocity = 0
+    for velocity in q_prime:
+        if abs(velocity) > max_velocity:
+            max_velocity = velocity
+
+    ratio = 1
+    if max_velocity > MAX_JOINT_VELOCITY:
+        ratio = MAX_JOINT_VELOCITY / abs(max_velocity)
+
+    joint_1_pub.publish(q_prime[0, 0] / ratio)
+    joint_2_pub.publish(q_prime[1, 0] / ratio)
+    joint_3_pub.publish(q_prime[2, 0] / ratio)
+    joint_4_pub.publish(q_prime[3, 0] / ratio)
+    joint_5_pub.publish(q_prime[4, 0] / ratio)
+    joint_6_pub.publish(q_prime[5, 0] / ratio)
 
 
 def test_rotate_joint_6():
