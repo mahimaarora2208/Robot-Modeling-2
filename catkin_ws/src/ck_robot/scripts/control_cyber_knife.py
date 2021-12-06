@@ -6,6 +6,7 @@ import random
 import sympy
 
 import rospy
+import numpy as np
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
@@ -29,14 +30,45 @@ joint_6_pub = rospy.Publisher("ck_robot/trans_6/command", Float64, queue_size=10
 tumor_location = None
 
 
+theta1, theta2, theta3, theta4, theta5, theta6 = sympy.symbols("theta1, theta2, theta3, theta4, theta5, theta6")
+generic_jacobian = None
+generic_t_0_to_6 = None
+
+
 def joint_state_callback(joint_states):
     global joint_positions, joint_velocities
     joint_positions = joint_states.position 
     joint_velocities = joint_states.velocity
-    
 
     # TODO - remove this temporary test
     # test_rotate_joint_6()
+
+
+# Generates a list of transformation matrices from world frame to frame N
+def transformation_matrix(a, alpha, d, theta):
+    matrix_list = []  # Will store matrix from T0_n frames
+    A = np.identity(4)
+    dh_table = np.array([[a[0], alpha[0], d[0], theta[0]],
+                         [a[1], alpha[1], d[1], theta[1]],
+                         [a[2], alpha[2], d[2], theta[2]],
+                         [a[3], alpha[3], d[3], theta[3]],
+                         [a[4], alpha[4], d[4], theta[4]],
+                         [a[5], alpha[5], d[5], theta[5]]])
+   
+    for i in range(0, len(dh_table)):
+        T = sympy.Matrix([[sympy.cos(dh_table[i, 3]), -sympy.sin(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]), sympy.sin(dh_table[i, 3]) * sympy.sin(dh_table[i, 1]), dh_table[i, 0] * sympy.cos(dh_table[i, 3])],
+             [sympy.sin(dh_table[i, 3]), sympy.cos(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]), -sympy.cos(
+                 dh_table[i, 3]) * sympy.sin(dh_table[i, 1]), dh_table[i, 0] * sympy.sin(dh_table[i, 3])],
+             [0, sympy.sin(dh_table[i, 1]), sympy.cos(
+                 dh_table[i, 1]), dh_table[i, 2]],
+             [0, 0, 0, 1]])
+                
+        A = A @ T
+        matrix_list.append(A)
+        # with np.printoptions(precision=2, suppress=True):
+        #    print(A)
+    return matrix_list
+
 
 
 def receive_tumor_location(msg):
@@ -47,16 +79,18 @@ def receive_tumor_location(msg):
 
 
 def pursue_tumor_location():
-    J = None # TODO - this is a sympy matrix of the Jacobian 
-    this_j = J.subs([(theta1, joint_positions[0]),
+    if not generic_jacobian:
+        return
+
+    this_j = generic_jacobian.subs([(theta1, joint_positions[0]),
         (theta2, joint_positions[1]),
         (theta3, joint_positions[2]),
         (theta4, joint_positions[3]),
         (theta5, joint_positions[4]),
         (theta6, joint_positions[5])])
-    inverse_j = None # TODO
+    inverse_j = this_j.inv() # TODO
 
-    transform_0_to_6 = t_0_to_6.subs([(theta1, joint_positions[0]),
+    transform_0_to_6 = generic_t_0_to_6.subs([(theta1, joint_positions[0]),
         (theta2, joint_positions[1]),
         (theta3, joint_positions[2]),
         (theta4, joint_positions[3]),
@@ -90,22 +124,69 @@ def pursue_tumor_location():
     joint_6_pub.publish(q_prime[5, 0] / ratio)
 
 
-def test_rotate_joint_6():
-    max_rotation_speed = 0.2 
+# def test_rotate_joint_6():
+#     max_rotation_speed = 0.2
+#
+#     joint_6_position = joint_positions[5]
+#
+#     recommended_speed = (math.pi - joint_6_position) / 10
+#     rotation_speed = min(max_rotation_speed, recommended_speed)
+#
+#     # print("Rotating with speed " + rotation_speed)
+#     joint_6_pub.publish(rotation_speed)
 
-    joint_6_position = joint_positions[5]
-    
-    recommended_speed = (math.pi - joint_6_position) / 10
-    rotation_speed = min(max_rotation_speed, recommended_speed)
-    
-    # print("Rotating with speed " + rotation_speed)
-    joint_6_pub.publish(rotation_speed)
 
+def generate_generic_jacobian(ts):
+    global generic_jacobian, generic_t_0_to_6
+
+    generic_t_0_to_6 = ts[-1]
+
+    j1 = sympy.zeros(6, 1)
+    j1[0:3, 0] = sympy.Matrix([[0], [0], [1]]).cross(ts[-1][0:3, 3] - sympy.Matrix([[0], [0], [0]]))
+    j1[3:6, 0] = sympy.Matrix([[0], [0], [1]])
+
+    j2 = sympy.zeros(6, 1)
+    j2[0:3, 0] = ts[0][0:3, 2].cross(ts[-1][0:3, 3] - ts[0][0:3, 3])
+    j2[3:6, 0] = ts[0][0:3, 2]
+
+    j3 = sympy.zeros(6, 1)
+    j3[0:3, 0] = ts[1][0:3, 2].cross(ts[-1][0:3, 3] - ts[1][0:3, 3])
+    j3[3:6, 0] = ts[1][0:3, 2]
+
+    j4 = sympy.zeros(6, 1)
+    j4[0:3, 0] = ts[2][0:3, 2].cross(ts[-1][0:3, 3] - ts[2][0:3, 3])
+    j4[3:6, 0] = ts[2][0:3, 2]
+
+    j5 = sympy.zeros(6, 1)
+    j5[0:3, 0] = ts[3][0:3, 2].cross(ts[-1][0:3, 3] - ts[3][0:3, 3])
+    j5[3:6, 0] = ts[3][0:3, 2]
+
+    j6 = sympy.zeros(6, 1)
+    j6[0:3, 0] = ts[4][0:3, 2].cross(ts[-1][0:3, 3] - ts[4][0:3, 3])
+    j6[3:6, 0] = ts[4][0:3, 2]
+
+    generic_jacobian = sympy.zeros(6, 6)
+    generic_jacobian[:, 0] = j1
+    generic_jacobian[:, 1] = j2
+    generic_jacobian[:, 2] = j3
+    generic_jacobian[:, 3] = j4
+    generic_jacobian[:, 4] = j5
+    generic_jacobian[:, 5] = j6
 
 def init_cyberknife_control():
     rospy.init_node('cyberknife_control', anonymous=True)
 
     rospy.Subscriber("ck_robot/joint_states", JointState, joint_state_callback)
+
+    # theta = [np.pi/2, 0, 0, 0, 0, 0, 0]
+    theta = [theta1, theta2, theta3, theta4, theta5, theta6]
+    d = [630, 0, 0, 190, 0, 0] 
+    alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
+    a = [300, 680, 0, 0, 0, 0]
+
+    T0_n = transformation_matrix(a, alpha, d, theta)
+
+    generate_generic_jacobian(T0_n)
 
     rospy.spin()
 
