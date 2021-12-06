@@ -68,7 +68,8 @@ def transformation_matrix(a, alpha, d, theta):
                          [a[8], alpha[8], d[8], theta[8]],
                          [a[9], alpha[9], d[9], theta[9]],
                          [a[10], alpha[10], d[10], theta[10]],
-                         [a[11], alpha[11], d[11], theta[11]]])
+                         [a[11], alpha[11], d[11], theta[11]],
+                         [a[12], alpha[12], d[12], theta[12]]])
    
     for i in range(0, len(dh_table)):
         T = sympy.Matrix([[sympy.cos(dh_table[i, 3]), -sympy.sin(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]), sympy.sin(dh_table[i, 3]) * sympy.sin(dh_table[i, 1]), dh_table[i, 0] * sympy.cos(dh_table[i, 3])],
@@ -102,6 +103,7 @@ def transformation_matrix(a, alpha, d, theta):
     A = A @ one_step_transforms[10]
     matrix_list.append(A)
     A = A @ one_step_transforms[11]
+    A = A @ one_step_transforms[12]
     matrix_list.append(A)
 
     return matrix_list
@@ -143,7 +145,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_2 * sympy.Matrix([[0], [0], [0], [1]])
-    print("origin of link 2 position: " + str(ee_position))
+    # print("origin of link 2 position: " + str(ee_position))
 
     transform_0_to_3 = generic_t_0_to_3.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -152,7 +154,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_3 * sympy.Matrix([[0], [0], [0], [1]])
-    # print("origin of link 3 position: " + str(ee_position))
+    print("origin of link 3 position: " + str(ee_position))
 
     transform_0_to_4 = generic_t_0_to_4.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -161,7 +163,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_4 * sympy.Matrix([[0], [0], [0], [1]])
-    # print("origin of link 4 position: " + str(ee_position))
+    print("origin of link 4 position: " + str(ee_position))
 
     transform_0_to_5 = generic_t_0_to_5.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -170,7 +172,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_5 * sympy.Matrix([[0], [0], [0], [1]])
-    # print("origin of link 5 position: " + str(ee_position))
+    print("origin of link 5 position: " + str(ee_position))
 
     transform_0_to_6 = generic_t_0_to_6.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -179,7 +181,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
-    # print("origin of link 6 position: " + str(ee_position))
+    print("origin of link 6 position: " + str(ee_position))
 
     # return
     inverse_j = this_j.inv() # TODO
@@ -282,11 +284,11 @@ def init_cyberknife_control():
     # alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
     # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
 
-    #    0        1       2       d         d        3        d        d        4       d         d         5
-    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6]
-    d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0]
-    alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2,0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
-    a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0.350]
+    #    0        1       2       d         d        3        d        d        4       d         d         5        d
+    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6, -np.pi/4]
+    d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0,      0]
+    alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2,0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0,      0]
+    a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0,      0.350]
 
     print(len(theta))
     print(len(d))
