@@ -46,6 +46,10 @@ def init_tumor_generator():
     y = tumor_distance * math.sin(tumor_angle) 
     z = tumor_elevation
 
+    x = 0
+    z = 0.63
+    y = 1.0
+
     # Wait for a list of models currently in Gazebo, and spawn/move tumor accordingly
     model_states = rospy.wait_for_message("/gazebo/model_states", ModelStates, timeout=None)
     model_names = model_states.name

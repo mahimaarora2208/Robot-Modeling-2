@@ -49,7 +49,7 @@ def joint_state_callback(joint_states):
     new_pose_stamped = PoseStamped()
     new_pose_stamped.pose.position.x = 0
     new_pose_stamped.pose.position.z = 0.63
-    new_pose_stamped.pose.position.y = 1.5
+    new_pose_stamped.pose.position.y = 1.0
     tumor_location = new_pose_stamped.pose.position
 
 
@@ -194,7 +194,11 @@ def pursue_tumor_location():
     # print("EE Position: " + str(ee_position))
     # print("Tumor Location: " + str(tumor_location))
 
-    desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [0]])
+    yaw_to_tumor = math.atan2(dy, dx)
+    current_yaw = math.atan2(transform_0_to_6[1, 0], transform_0_to_6[0, 0])
+    dyaw = (yaw_to_tumor - current_yaw) / 10
+
+    desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [dyaw]])
     # print("EE Movement: " + str(desired_ee_movement))
     q_prime = inverse_j * desired_ee_movement
 
@@ -284,11 +288,11 @@ def init_cyberknife_control():
     # alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
     # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
 
-    #    0        1       2       d         d        3        d        d        4       d         d         5        d
+    #    0        1       2       d         d        3        d        d        4       d         d         5        ee
     theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6, -np.pi/4]
     d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0,      0]
     alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2,0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0,      0]
-    a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0,      0.350]
+    a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0,      0.450]
 
     print(len(theta))
     print(len(d))

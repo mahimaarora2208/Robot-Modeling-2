@@ -11,13 +11,13 @@ Effort:
 CyberKnife Control:
 + Write simple publisher / subscriber
 + Retrieve joint positions from CyberKnife
-- Calculate Jacobian from joint positions
-- Calculate inverse kinematics
-- Move CyberKnife to point at tumor
++ Calculate Jacobian from joint positions
++ Calculate inverse kinematics
++ Move CyberKnife to point at tumor
 
 
 CyberKnife Scanning:
-- Complete "CyberKnife Control"
++ Complete "CyberKnife Control"
 - Find out motion path for our end effector
 - Similar to homework 5, move the CyberKnife to trace that path
 
