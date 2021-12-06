@@ -49,7 +49,7 @@ def joint_state_callback(joint_states):
     new_pose_stamped = PoseStamped()
     new_pose_stamped.pose.position.x = 0
     new_pose_stamped.pose.position.z = 0.63
-    new_pose_stamped.pose.position.y = 2
+    new_pose_stamped.pose.position.y = 1.5
     tumor_location = new_pose_stamped.pose.position
 
 
@@ -118,7 +118,7 @@ def pursue_tumor_location():
     if not generic_jacobian:
         return
 
-    print(joint_positions)
+    # print(joint_positions)
     this_j = generic_jacobian.subs([(theta1, joint_positions[0]),
         (theta2, joint_positions[1]),
         (theta3, joint_positions[2]),
@@ -133,7 +133,8 @@ def pursue_tumor_location():
         (theta5, joint_positions[4]),
         (theta6, joint_positions[5])])
     ee_position = transform_0_to_1 * sympy.Matrix([[0], [0], [0], [1]])
-    print("\norigin of link 1 position: " + str(ee_position))
+    print("")
+    # print("origin of link 1 position: " + str(ee_position))
 
     transform_0_to_2 = generic_t_0_to_2.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -151,7 +152,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_3 * sympy.Matrix([[0], [0], [0], [1]])
-    print("origin of link 3 position: " + str(ee_position))
+    # print("origin of link 3 position: " + str(ee_position))
 
     transform_0_to_4 = generic_t_0_to_4.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -160,7 +161,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_4 * sympy.Matrix([[0], [0], [0], [1]])
-    print("origin of link 4 position: " + str(ee_position))
+    # print("origin of link 4 position: " + str(ee_position))
 
     transform_0_to_5 = generic_t_0_to_5.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -169,7 +170,7 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_5 * sympy.Matrix([[0], [0], [0], [1]])
-    print("origin of link 5 position: " + str(ee_position))
+    # print("origin of link 5 position: " + str(ee_position))
 
     transform_0_to_6 = generic_t_0_to_6.subs([(theta1, joint_positions[0]),
                                               (theta2, joint_positions[1]),
@@ -178,17 +179,21 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
-    print("origin of link 6 position: " + str(ee_position))
+    # print("origin of link 6 position: " + str(ee_position))
 
     # return
     inverse_j = this_j.inv() # TODO
     # Calculate the change for the end effector for each of the 6 coordinates
     dx = tumor_location.x - ee_position[0, 0]
     dy = tumor_location.y - ee_position[1, 0]
-    dz = tumor_location.z - ee_position[2, 0]
+    dz = (tumor_location.z / 1.6) - ee_position[2, 0]
     # TODO - how do we calculate the angle of the end effector? 
 
+    # print("EE Position: " + str(ee_position))
+    # print("Tumor Location: " + str(tumor_location))
+
     desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [0]])
+    # print("EE Movement: " + str(desired_ee_movement))
     q_prime = inverse_j * desired_ee_movement
 
     max_velocity = 0
@@ -202,7 +207,7 @@ def pursue_tumor_location():
 
     ratio *= 0.25 # Slow that bad boy down
 
-    print("Q prime: " + str(q_prime))
+    # print("Q prime: " + str(q_prime))
 
     joint_1_pub.publish(q_prime[0, 0] * ratio)
     joint_2_pub.publish(q_prime[1, 0] * ratio)
@@ -275,11 +280,12 @@ def init_cyberknife_control():
 
     # theta = [np.pi/2, 0, 0, 0, 0, 0, 0]
     # alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
+    # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
+
     #    0        1       2       d         d        3        d        d        4       d         d         5
     theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       np.pi/2, theta5, -np.pi/2, 0,        theta6]
     d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0]
-    # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
-    alpha = [-np.pi/2, 0,      0,      0,        np.pi/2, 0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
+    alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2, 0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
     a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0.350]
 
     print(len(theta))
