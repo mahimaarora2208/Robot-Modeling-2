@@ -13,7 +13,7 @@ from std_msgs.msg import Float64
 
 print("Finished with imports.")
 
-MAX_JOINT_VELOCITY = 1.5
+MAX_JOINT_VELOCITY = 0.5
 
 joint_positions = [-1, -1, -1, -1, -1, -1]
 joint_velocities = [-1, -1, -1, -1, -1, -1]
@@ -32,28 +32,45 @@ tumor_location = None
 
 theta1, theta2, theta3, theta4, theta5, theta6 = sympy.symbols("theta1, theta2, theta3, theta4, theta5, theta6")
 generic_jacobian = None
+generic_t_0_to_1 = None
+generic_t_0_to_2 = None
+generic_t_0_to_3 = None
+generic_t_0_to_4 = None
+generic_t_0_to_5 = None
 generic_t_0_to_6 = None
 
 
 def joint_state_callback(joint_states):
-    global joint_positions, joint_velocities
+    global joint_positions, joint_velocities, tumor_location
     joint_positions = joint_states.position 
     joint_velocities = joint_states.velocity
 
-    # TODO - remove this temporary test
-    # test_rotate_joint_6()
+    # For now, let's pursue a simple tumor position
+    new_pose_stamped = PoseStamped()
+    new_pose_stamped.pose.position.x = 1
+    new_pose_stamped.pose.position.z = 1
+    new_pose_stamped.pose.position.y = 0
+    tumor_location = new_pose_stamped.pose.position
+
+    pursue_tumor_location()
 
 
 # Generates a list of transformation matrices from world frame to frame N
 def transformation_matrix(a, alpha, d, theta):
-    matrix_list = []  # Will store matrix from T0_n frames
+    one_step_transforms = []  # Will store matrix from T0_n frames
     A = np.identity(4)
     dh_table = np.array([[a[0], alpha[0], d[0], theta[0]],
                          [a[1], alpha[1], d[1], theta[1]],
                          [a[2], alpha[2], d[2], theta[2]],
                          [a[3], alpha[3], d[3], theta[3]],
                          [a[4], alpha[4], d[4], theta[4]],
-                         [a[5], alpha[5], d[5], theta[5]]])
+                         [a[5], alpha[5], d[5], theta[5]],
+                         [a[6], alpha[6], d[6], theta[6]],
+                         [a[7], alpha[7], d[7], theta[7]],
+                         [a[8], alpha[8], d[8], theta[8]],
+                         [a[9], alpha[9], d[9], theta[9]],
+                         [a[10], alpha[10], d[10], theta[10]],
+                         [a[11], alpha[11], d[11], theta[11]]])
    
     for i in range(0, len(dh_table)):
         T = sympy.Matrix([[sympy.cos(dh_table[i, 3]), -sympy.sin(dh_table[i, 3]) * sympy.cos(dh_table[i, 1]), sympy.sin(dh_table[i, 3]) * sympy.sin(dh_table[i, 1]), dh_table[i, 0] * sympy.cos(dh_table[i, 3])],
@@ -64,11 +81,32 @@ def transformation_matrix(a, alpha, d, theta):
              [0, 0, 0, 1]])
                 
         A = A @ T
-        matrix_list.append(A)
+        one_step_transforms.append(T)
         # with np.printoptions(precision=2, suppress=True):
         #    print(A)
-    return matrix_list
 
+    A = np.identity(4)
+    matrix_list = []
+    A = A @ one_step_transforms[0]
+    matrix_list.append(A) # Appending transform to frame 1
+    A = A @ one_step_transforms[1]
+    matrix_list.append(A) # Appending transform to frame 2
+    A = A @ one_step_transforms[2]
+    A = A @ one_step_transforms[3]
+    A = A @ one_step_transforms[4]
+    matrix_list.append(A) # Appending transform to frame 3
+    A = A @ one_step_transforms[5]
+    A = A @ one_step_transforms[6]
+    A = A @ one_step_transforms[7]
+    matrix_list.append(A)
+    A = A @ one_step_transforms[8]
+    A = A @ one_step_transforms[9]
+    A = A @ one_step_transforms[10]
+    matrix_list.append(A)
+    A = A @ one_step_transforms[11]
+    matrix_list.append(A)
+
+    return matrix_list
 
 
 def receive_tumor_location(msg):
@@ -82,22 +120,70 @@ def pursue_tumor_location():
     if not generic_jacobian:
         return
 
+    print(joint_positions)
     this_j = generic_jacobian.subs([(theta1, joint_positions[0]),
         (theta2, joint_positions[1]),
         (theta3, joint_positions[2]),
         (theta4, joint_positions[3]),
         (theta5, joint_positions[4]),
         (theta6, joint_positions[5])])
-    inverse_j = this_j.inv() # TODO
 
-    transform_0_to_6 = generic_t_0_to_6.subs([(theta1, joint_positions[0]),
+    transform_0_to_1 = generic_t_0_to_1.subs([(theta1, joint_positions[0]),
         (theta2, joint_positions[1]),
         (theta3, joint_positions[2]),
         (theta4, joint_positions[3]),
         (theta5, joint_positions[4]),
         (theta6, joint_positions[5])])
-    ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
+    ee_position = transform_0_to_1 * sympy.Matrix([[0], [0], [0], [1]])
+    print("\norigin of link 1 position: " + str(ee_position))
 
+    transform_0_to_2 = generic_t_0_to_2.subs([(theta1, joint_positions[0]),
+                                              (theta2, joint_positions[1]),
+                                              (theta3, joint_positions[2]),
+                                              (theta4, joint_positions[3]),
+                                              (theta5, joint_positions[4]),
+                                              (theta6, joint_positions[5])])
+    ee_position = transform_0_to_2 * sympy.Matrix([[0], [0], [0], [1]])
+    print("origin of link 2 position: " + str(ee_position))
+
+    transform_0_to_3 = generic_t_0_to_3.subs([(theta1, joint_positions[0]),
+                                              (theta2, joint_positions[1]),
+                                              (theta3, joint_positions[2]),
+                                              (theta4, joint_positions[3]),
+                                              (theta5, joint_positions[4]),
+                                              (theta6, joint_positions[5])])
+    ee_position = transform_0_to_3 * sympy.Matrix([[0], [0], [0], [1]])
+    print("origin of link 3 position: " + str(ee_position))
+
+    transform_0_to_4 = generic_t_0_to_4.subs([(theta1, joint_positions[0]),
+                                              (theta2, joint_positions[1]),
+                                              (theta3, joint_positions[2]),
+                                              (theta4, joint_positions[3]),
+                                              (theta5, joint_positions[4]),
+                                              (theta6, joint_positions[5])])
+    ee_position = transform_0_to_4 * sympy.Matrix([[0], [0], [0], [1]])
+    print("origin of link 4 position: " + str(ee_position))
+
+    transform_0_to_5 = generic_t_0_to_5.subs([(theta1, joint_positions[0]),
+                                              (theta2, joint_positions[1]),
+                                              (theta3, joint_positions[2]),
+                                              (theta4, joint_positions[3]),
+                                              (theta5, joint_positions[4]),
+                                              (theta6, joint_positions[5])])
+    ee_position = transform_0_to_5 * sympy.Matrix([[0], [0], [0], [1]])
+    print("origin of link 5 position: " + str(ee_position))
+
+    transform_0_to_6 = generic_t_0_to_6.subs([(theta1, joint_positions[0]),
+                                              (theta2, joint_positions[1]),
+                                              (theta3, joint_positions[2]),
+                                              (theta4, joint_positions[3]),
+                                              (theta5, joint_positions[4]),
+                                              (theta6, joint_positions[5])])
+    ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
+    print("origin of link 6 position: " + str(ee_position))
+
+    return
+    inverse_j = this_j.inv() # TODO
     # Calculate the change for the end effector for each of the 6 coordinates
     dx = tumor_location.x - ee_position[0, 0]
     dy = tumor_location.y - ee_position[1, 0]
@@ -116,12 +202,12 @@ def pursue_tumor_location():
     if max_velocity > MAX_JOINT_VELOCITY:
         ratio = MAX_JOINT_VELOCITY / abs(max_velocity)
 
-    joint_1_pub.publish(q_prime[0, 0] / ratio)
-    joint_2_pub.publish(q_prime[1, 0] / ratio)
-    joint_3_pub.publish(q_prime[2, 0] / ratio)
-    joint_4_pub.publish(q_prime[3, 0] / ratio)
-    joint_5_pub.publish(q_prime[4, 0] / ratio)
-    joint_6_pub.publish(q_prime[5, 0] / ratio)
+    joint_1_pub.publish(q_prime[0, 0] * ratio)
+    joint_2_pub.publish(q_prime[1, 0] * ratio)
+    joint_3_pub.publish(q_prime[2, 0] * ratio)
+    joint_4_pub.publish(q_prime[3, 0] * ratio)
+    joint_5_pub.publish(q_prime[4, 0] * ratio)
+    joint_6_pub.publish(q_prime[5, 0] * ratio)
 
 
 # def test_rotate_joint_6():
@@ -137,9 +223,14 @@ def pursue_tumor_location():
 
 
 def generate_generic_jacobian(ts):
-    global generic_jacobian, generic_t_0_to_6
+    global generic_jacobian, generic_t_0_to_1, generic_t_0_to_2, generic_t_0_to_3, generic_t_0_to_4, generic_t_0_to_5, generic_t_0_to_6
 
-    generic_t_0_to_6 = ts[-1]
+    generic_t_0_to_1 = ts[0]
+    generic_t_0_to_2 = ts[1]
+    generic_t_0_to_3 = ts[2]
+    generic_t_0_to_4 = ts[3]
+    generic_t_0_to_5 = ts[4]
+    generic_t_0_to_6 = ts[5]
 
     j1 = sympy.zeros(6, 1)
     j1[0:3, 0] = sympy.Matrix([[0], [0], [1]]).cross(ts[-1][0:3, 3] - sympy.Matrix([[0], [0], [0]]))
@@ -178,11 +269,20 @@ def init_cyberknife_control():
 
     rospy.Subscriber("ck_robot/joint_states", JointState, joint_state_callback)
 
+    # theta_n is used by link N-1
+
     # theta = [np.pi/2, 0, 0, 0, 0, 0, 0]
-    theta = [theta1, theta2, theta3, theta4, theta5, theta6]
-    d = [630, 0, 0, 190, 0, 0] 
-    alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
-    a = [300, 680, 0, 0, 0, 0]
+    # alpha = [np.pi/2, 0, np.pi/2, -np.pi/2, np.pi/2, -np.pi/2]
+    #    0        1       2       d         d        3        d        d        4       d         d         5
+    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       np.pi/2, theta5, -np.pi/2, 0,        theta6]
+    d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0]
+    alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
+    a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0.350]
+
+    print(len(theta))
+    print(len(d))
+    print(len(alpha))
+    print(len(a))
 
     T0_n = transformation_matrix(a, alpha, d, theta)
 
