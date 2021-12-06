@@ -13,7 +13,7 @@ from std_msgs.msg import Float64
 
 print("Finished with imports.")
 
-MAX_JOINT_VELOCITY = 0.5
+MAX_JOINT_VELOCITY = 0.25
 
 joint_positions = [-1, -1, -1, -1, -1, -1]
 joint_velocities = [-1, -1, -1, -1, -1, -1]
@@ -47,12 +47,10 @@ def joint_state_callback(joint_states):
 
     # For now, let's pursue a simple tumor position
     new_pose_stamped = PoseStamped()
-    new_pose_stamped.pose.position.x = 1
-    new_pose_stamped.pose.position.z = 1
-    new_pose_stamped.pose.position.y = 0
+    new_pose_stamped.pose.position.x = 0
+    new_pose_stamped.pose.position.z = 0.63
+    new_pose_stamped.pose.position.y = 2
     tumor_location = new_pose_stamped.pose.position
-
-    pursue_tumor_location()
 
 
 # Generates a list of transformation matrices from world frame to frame N
@@ -182,7 +180,7 @@ def pursue_tumor_location():
     ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
     print("origin of link 6 position: " + str(ee_position))
 
-    return
+    # return
     inverse_j = this_j.inv() # TODO
     # Calculate the change for the end effector for each of the 6 coordinates
     dx = tumor_location.x - ee_position[0, 0]
@@ -199,8 +197,12 @@ def pursue_tumor_location():
             max_velocity = velocity
 
     ratio = 1
-    if max_velocity > MAX_JOINT_VELOCITY:
+    if abs(max_velocity) > MAX_JOINT_VELOCITY:
         ratio = MAX_JOINT_VELOCITY / abs(max_velocity)
+
+    ratio *= 0.25 # Slow that bad boy down
+
+    print("Q prime: " + str(q_prime))
 
     joint_1_pub.publish(q_prime[0, 0] * ratio)
     joint_2_pub.publish(q_prime[1, 0] * ratio)
@@ -276,7 +278,8 @@ def init_cyberknife_control():
     #    0        1       2       d         d        3        d        d        4       d         d         5
     theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       np.pi/2, theta5, -np.pi/2, 0,        theta6]
     d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0]
-    alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
+    # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
+    alpha = [-np.pi/2, 0,      0,      0,        np.pi/2, 0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
     a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0.350]
 
     print(len(theta))
@@ -287,6 +290,11 @@ def init_cyberknife_control():
     T0_n = transformation_matrix(a, alpha, d, theta)
 
     generate_generic_jacobian(T0_n)
+
+    rate = rospy.Rate(10)  # 10hz
+    while not rospy.is_shutdown():
+        pursue_tumor_location()
+        rate.sleep()
 
     rospy.spin()
 
