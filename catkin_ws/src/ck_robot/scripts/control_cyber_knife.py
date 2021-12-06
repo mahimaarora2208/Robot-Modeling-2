@@ -283,9 +283,9 @@ def init_cyberknife_control():
     # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
 
     #    0        1       2       d         d        3        d        d        4       d         d         5
-    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       np.pi/2, theta5, -np.pi/2, 0,        theta6]
+    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6]
     d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0]
-    alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2, 0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
+    alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2,0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0]
     a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0.350]
 
     print(len(theta))
