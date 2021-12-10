@@ -188,7 +188,7 @@ def pursue_tumor_location():
     # Calculate the change for the end effector for each of the 6 coordinates
     dx = tumor_location.x - ee_position[0, 0]
     dy = tumor_location.y - ee_position[1, 0]
-    dz = (tumor_location.z / 1.6) - ee_position[2, 0]
+    dz = tumor_location.z - ee_position[2, 0]
     # TODO - how do we calculate the angle of the end effector? 
 
     # print("EE Position: " + str(ee_position))
@@ -197,6 +197,10 @@ def pursue_tumor_location():
     yaw_to_tumor = math.atan2(dy, dx)
     current_yaw = math.atan2(transform_0_to_6[1, 0], transform_0_to_6[0, 0])
     dyaw = (yaw_to_tumor - current_yaw) / 10
+
+    pitch_to_tumor = math.atan2(dz, dx)
+    current_pitch = math.atan2(transform_0_to_6[2, 0], math.sqrt(transform_0_to_6[2, 1]**2 + transform_0_to_6[2, 2]**2))
+    dpitch = (pitch_to_tumor - current_pitch) / 10
 
     desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [dyaw]])
     # print("EE Movement: " + str(desired_ee_movement))
