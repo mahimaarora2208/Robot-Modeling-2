@@ -18,6 +18,7 @@ MAX_JOINT_VELOCITY = 0.25
 joint_positions = [-1, -1, -1, -1, -1, -1]
 joint_velocities = [-1, -1, -1, -1, -1, -1]
 
+DISTANCE_OF_RADIATION_TARGET_FROM_END_EFFECTOR = .25
 
 joint_1_pub = rospy.Publisher("ck_robot/trans_1/command", Float64, queue_size=10)
 joint_2_pub = rospy.Publisher("ck_robot/trans_2/command", Float64, queue_size=10)
@@ -181,28 +182,37 @@ def pursue_tumor_location():
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
     ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
+    target_position = transform_0_to_6 * sympy.Matrix([[DISTANCE_OF_RADIATION_TARGET_FROM_END_EFFECTOR], [0], [0], [1]])
     print("origin of link 6 position: " + str(ee_position))
 
     # return
     inverse_j = this_j.inv() # TODO
     # Calculate the change for the end effector for each of the 6 coordinates
-    dx = tumor_location.x - ee_position[0, 0]
-    dy = tumor_location.y - ee_position[1, 0]
-    dz = tumor_location.z - ee_position[2, 0]
+    dx = tumor_location.x - target_position[0, 0]
+    dy = tumor_location.y - target_position[1, 0]
+    dz = tumor_location.z - target_position[2, 0]
     # TODO - how do we calculate the angle of the end effector? 
+
+    dx_ee = tumor_location.x - ee_position[0, 0]
+    dy_ee = tumor_location.y - ee_position[1, 0]
+    dz_ee = tumor_location.z - ee_position[2, 0]
 
     # print("EE Position: " + str(ee_position))
     # print("Tumor Location: " + str(tumor_location))
 
-    yaw_to_tumor = math.atan2(dy, dx)
+    yaw_to_tumor = math.atan2(dy_ee, dx_ee)
     current_yaw = math.atan2(transform_0_to_6[1, 0], transform_0_to_6[0, 0])
     dyaw = (yaw_to_tumor - current_yaw) / 10
 
-    pitch_to_tumor = math.atan2(dz, dx)
+    pitch_to_tumor = math.atan2(dz_ee, dx_ee)
     current_pitch = math.atan2(transform_0_to_6[2, 0], math.sqrt(transform_0_to_6[2, 1]**2 + transform_0_to_6[2, 2]**2))
     dpitch = (pitch_to_tumor - current_pitch) / 10
 
-    desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [0], [0], [dyaw]])
+    roll_to_tumor = math.atan2(dz_ee, dy_ee)
+    current_roll = math.atan2(transform_0_to_6[2, 1], transform_0_to_6[2, 2])
+    droll = (roll_to_tumor - current_roll) / 10
+
+    desired_ee_movement = sympy.Matrix([[dx], [dy], [dz], [droll], [dpitch], [dyaw]])
     # print("EE Movement: " + str(desired_ee_movement))
     q_prime = inverse_j * desired_ee_movement
 
@@ -293,7 +303,7 @@ def init_cyberknife_control():
     # alpha = [np.pi/2, 0,      0,      0,        -np.pi/2, 0,       np.pi/2, 0,       0,      0,        -np.pi/2, 0]
 
     #    0        1       2       d         d        3        d        d        4       d         d         5        ee
-    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6, -np.pi/4]
+    theta = [theta1,  theta2, theta3, -np.pi/2, 0,       theta4,  0,       -np.pi/2, theta5, np.pi/2, 0,        theta6, -np.pi/4 - 0.25]
     d = [0.630,   0,      0,      0,        0,       0.190,   0,       0,       0,      0,        0,        0,      0]
     alpha = [np.pi/2, np.pi,  -np.pi, 0,        -np.pi/2,0,       -np.pi/2, 0,       0,      0,        np.pi/2, 0,      0]
     a = [0.300,   0.680,  .430,   0,        0,       0,       0,       0,       0.206,  0,        0,        0,      0.450]
