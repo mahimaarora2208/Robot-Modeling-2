@@ -15,6 +15,14 @@ In order to see CyberKnife in Gazebo, run the command below. This will show visu
 
 Gazebo should launch in a few seconds. After it is loaded, feel free to test / inspect the results as you wish. 
 
+### Testing CyberKnife's Kinematics
+
+To allow CyberKnife to target this tumor, source the workspace's `devel/setup.bash` file just like before and then run the following command after going to `catkin_ws/src/ck_robot` location:
+
+`rosrun ck_robot control_cyber_knife.py`
+
+With this script running, one should see the manipulator in its home position in Gazebo.The terminal might seem "stuck" at "13" but it is actually waiting for the tumor location as input. By running the next step in a new terminal, it should work. You can also follow the steps in the video in report.
+
 ### Creating a Tumor Object in Gazebo
 
 For our demonstration scenario, CyberKnife will apply joint velocities to point its end effector at this simulated tumor and continuously track the tumor until the user closes the application. 
@@ -26,10 +34,6 @@ rosrun ck_robot generate_tumor.py`
 
 If Gazebo is open, a green ball will appear floating along the Y axis. This is the tumor that CyberKnife will target. 
 
-### Testing CyberKnife's Kinematics
-
-To allow CyberKnife to target this tumor, source the workspace's `devel/setup.bash` file just like before and then run the following command:
-
-`rosrun ck_robot control_cyber_knife.py`
-
 With this script running, one should see repeated output of some of the robot's joint locations. In Gazebo, CyberKnife should slowly start to move its end effector towards the tumor. After it has reached the tumor, CyberKnife will continue to point towards its target until the user closes the windows. 
+
+### Creating a Tumor Object in Gazebo
