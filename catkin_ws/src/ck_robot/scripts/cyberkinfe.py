@@ -86,8 +86,8 @@ def main():
     # Getting the trajectory of the circle
     x, y, z = circle_traj(50, 0, 605, 680)
     # Plotting the circle
-    ax = plt.axes(projection='3d')
-    ax.plot3D(x, y, z, 'bo')
+    #ax = plt.axes(projection='3d')
+    #ax.plot3D(x, y, z, 'bo')
     time_step = 0.02
 
     # Folowing circular trajectory
@@ -110,10 +110,10 @@ def main():
         J = jacobian_matrix(T0_n)
         with np.printoptions(precision=2, suppress=True):
             print(T0_n)
-        ax.plot3D(curr_d[0], curr_d[1], curr_d[2], 'go')
-        plt.pause(time_step)
+        #ax.plot3D(curr_d[0], curr_d[1], curr_d[2], 'go')
+        #plt.pause(time_step)
 
-    plt.show()
+    #plt.show()
 
 
 if __name__ == "__main__":
