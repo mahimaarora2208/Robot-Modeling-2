@@ -13,7 +13,7 @@ from std_msgs.msg import Float64
 
 print("Finished with imports.")
 
-MAX_JOINT_VELOCITY = 0.25
+MAX_JOINT_VELOCITY = 0.5
 
 joint_positions = [-1, -1, -1, -1, -1, -1]
 joint_velocities = [-1, -1, -1, -1, -1, -1]
@@ -46,13 +46,6 @@ def joint_state_callback(joint_states):
     joint_positions = joint_states.position 
     joint_velocities = joint_states.velocity
 
-    # For now, let's pursue a simple tumor position
-    new_pose_stamped = PoseStamped()
-    new_pose_stamped.pose.position.x = 0
-    new_pose_stamped.pose.position.z = 0.63
-    new_pose_stamped.pose.position.y = 1.0
-    tumor_location = new_pose_stamped.pose.position
-
 
 # Generates a list of transformation matrices from world frame to frame N
 def transformation_matrix(a, alpha, d, theta):
@@ -81,6 +74,7 @@ def transformation_matrix(a, alpha, d, theta):
              [0, 0, 0, 1]])
                 
         A = A @ T
+
         one_step_transforms.append(T)
         # with np.printoptions(precision=2, suppress=True):
         #    print(A)
@@ -119,6 +113,9 @@ def receive_tumor_location(msg):
 
 def pursue_tumor_location():
     if not generic_jacobian:
+        return
+
+    if not tumor_location:
         return
 
     # print(joint_positions)
@@ -181,6 +178,7 @@ def pursue_tumor_location():
                                               (theta4, joint_positions[3]),
                                               (theta5, joint_positions[4]),
                                               (theta6, joint_positions[5])])
+
     ee_position = transform_0_to_6 * sympy.Matrix([[0], [0], [0], [1]])
     target_position = transform_0_to_6 * sympy.Matrix([[DISTANCE_OF_RADIATION_TARGET_FROM_END_EFFECTOR], [0], [0], [1]])
     print("origin of link 6 position: " + str(ee_position))
@@ -295,6 +293,7 @@ def init_cyberknife_control():
     rospy.init_node('cyberknife_control', anonymous=True)
 
     rospy.Subscriber("ck_robot/joint_states", JointState, joint_state_callback)
+    rospy.Subscriber("/tumor_location", PoseStamped, receive_tumor_location)
 
     # theta_n is used by link N-1
 
